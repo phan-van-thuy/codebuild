@@ -7,7 +7,7 @@ phases:
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 711293602624.dkr.ecr.us-east-1.amazonaws.com
   build:
     commands:
-      - cd ..
+      - cd ../..
       - ls
       - cd ./application
       - echo Starting Build at 'date'
