@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: python-application
-        image: 
+        image: 711293602624.dkr.ecr.us-east-1.amazonaws.com/application:latest
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
