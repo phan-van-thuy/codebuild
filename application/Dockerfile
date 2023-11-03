@@ -13,5 +13,5 @@ RUN apt update -y && apt install -y build-essential libpq-dev
 RUN pip install -r requirements.txt
 
 COPY . .
-EXPOSE 5153
+#EXPOSE 5153
 CMD python app.py
