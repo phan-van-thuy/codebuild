@@ -9,11 +9,17 @@ phases:
     commands:
       - cd application
       - echo Starting Build at 'date'
-      - echo Building Docker Images...
-      - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
-      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+      - echo Building Docker Images Application...
+      - docker build -t $IMAGE_APP_REPO_NAME:$IMAGE_APP_TAG .
+      - docker tag $IMAGE_APP_REPO_NAME:$IMAGE_APP_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_APP_REPO_NAME:$IMAGE_APP_TAG
+      - cd ../db
+      - echo Starting Build at 'date'
+      - echo Building Docker Images Database...
+      - docker build -t $IMAGE_DB_REPO_NAME:$IMAGE_DB_TAG .
+      - docker tag $IMAGE_DB_REPO_NAME:$IMAGE_DB_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_DB_REPO_NAME:$IMAGE_DB_TAG
   post_build:
     commands:
       - echo Completed build at 'date'
-      - echo Pushomg the Docker image...
-      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+      - echo Pushing the Docker image...
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_APP_REPO_NAME:$IMAGE_APP_TAG
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_DB_REPO_NAME:$IMAGE_DB_TAG
