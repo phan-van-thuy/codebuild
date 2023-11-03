@@ -1,16 +1,16 @@
 import logging
 import os
 
+from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 from flask import jsonify, request
-from sqlalchemy import and_
+from sqlalchemy import and_, text
 from random import randint
 
 from config import app, db
-from models import Token, User
 
 
-port_number = int(os.environ.get("APP_PORT", 5151))
+port_number = int(os.environ.get("APP_PORT", 5153))
 
 
 @app.route("/health_check")
@@ -29,43 +29,57 @@ def readiness_check():
         return "ok"
 
 
-@app.route("/api/tokens", methods=["POST"])
-def validate_token():
-    user_id = request.args.get("user_id")
-    token_value = request.args.get("value")
+def get_daily_visits():
+    with app.app_context():
+        result = db.session.execute(text("""
+        SELECT Date(created_at) AS date,
+            Count(*)         AS visits
+        FROM   tokens
+        WHERE  used_at IS NOT NULL
+        GROUP  BY Date(created_at)
+        """))
 
-    if not user_id and token_value:
-        return jsonify(
-            {
-                "message": "user_id and token_value are required fields"
-            }
-        ), 400
+        response = {}
+        for row in result:
+            response[str(row[0])] = row[1]
 
-    ten_minutes_ago = datetime.now() -  timedelta(minutes=10)
+        app.logger.info(response)
 
-    token = Token.query.filter(
-        and_(
-            Token.user_id == user_id,
-            Token.created_at >= ten_minutes_ago,
-        )
-    ).first()
+    return response
 
-    if token and token.used_at is None:
-        # Mark the token as used
-        token.used_at = datetime.now()
-        db.session.commit()
 
-        return jsonify(
-            {
-                "status": "Success"
-            }
-        ), 200
-    else:
-        return jsonify(
-            {
-                "message": "No valid token was found"
-            }
-        ), 400
+@app.route("/api/reports/daily_usage", methods=["GET"])
+def daily_visits():
+    return jsonify(get_daily_visits)
+
+
+@app.route("/api/reports/user_visits", methods=["GET"])
+def all_user_visits():
+    result = db.session.execute(text("""
+    SELECT t.user_id,
+        t.visits,
+        users.joined_at
+    FROM   (SELECT tokens.user_id,
+                Count(*) AS visits
+            FROM   tokens
+            GROUP  BY user_id) AS t
+        LEFT JOIN users
+                ON t.user_id = users.id;
+    """))
+
+    response = {}
+    for row in result:
+        response[row[0]] = {
+            "visits": row[1],
+            "joined_at": str(row[2])
+        }
+    
+    return jsonify(response)
+
+
+scheduler = BackgroundScheduler()
+job = scheduler.add_job(get_daily_visits, 'interval', seconds=30)
+scheduler.start()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=port_number)

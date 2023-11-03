@@ -2,33 +2,33 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: admin-api
+  name: python-application
   labels:
-    name: admin-api
+    name: python-application
 spec:
   replicas: 1
   selector:
     matchLabels:
-      service: admin-api
+      service: python-application
   template:
     metadata:
       labels:
-        service: admin-api
+        service: python-application
     spec:
       containers:
-      - name: admin-api
+      - name: python-application
         image: 
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
             path: /health_check
-            port: 5151
+            port: 5153
           initialDelaySeconds: 5
           timeoutSeconds: 2
         readinessProbe:
           httpGet:
             path: "/readiness_check"
-            port: 5151
+            port: 5153
           initialDelaySeconds: 5
           timeoutSeconds: 5
         env:
