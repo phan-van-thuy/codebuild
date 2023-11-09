@@ -63,4 +63,4 @@ To run this project, you will need to add the following environment variables to
 ## Deploy application to Kubernetes
 * Run kubectl apply -f /deployment
 * Show all pod, svc, deployment run 
-    "kubectl get all"
+    kubectl get all
